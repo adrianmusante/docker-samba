@@ -1,4 +1,4 @@
-[![logo](https://raw.githubusercontent.com/adrianmusante/docker-samba/main/logo.jpg)](https://www.samba.org)
+[![logo](https://raw.githubusercontent.com/adrianmusante/docker-samba/main/logo.png)](https://www.samba.org)
 
 # Samba
 
