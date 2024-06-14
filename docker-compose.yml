@@ -1,27 +1,29 @@
-version: '3.4'
-
+# This docker-compose is only for local
 services:
   samba:
-    image: dperson/samba
+    image: adrianmusante/samba:0.0.0
+    container_name: samba
+    restart: unless-stopped
+    command: '-u "${SAMBA_USERNAME:-admin};${SAMBA_PASSWORD:-admin123}" -s "public;/data/pubic;yes;no" -s "downloads;/data/downloads;yes;no"'
+    build:
+      context: samba
+      args:
+        BUILD_TAG: 0.0.0
     environment:
-      TZ: 'EST5EDT'
-    networks:
-      - default
+      SAMBA_DEBUG: ${SAMBA_DEBUG:-true}
+      TZ: ${DOCKER_HOST_TZ:-}
+      USERID: ${DOCKER_HOST_UID:-1001}
+      GROUPID: ${DOCKER_HOST_GID:-1001}
+      PERMISSIONS: 'true'
     ports:
       - "137:137/udp"
       - "138:138/udp"
       - "139:139/tcp"
       - "445:445/tcp"
-    read_only: true
-    tmpfs:
-      - /tmp
-    restart: unless-stopped
-    stdin_open: true
-    tty: true
     volumes:
-      - /mnt:/mnt:z
-      - /mnt2:/mnt2:z
-    command: '-s "Mount;/mnt" -s "Bobs Volume;/mnt2;yes;no;no;bob" -u "bob;bobspasswd" -p'
+      - ./_local/data/samba:/data
 
 networks:
   default:
+    name: samba_network
+    driver: bridge

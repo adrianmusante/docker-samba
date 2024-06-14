@@ -1,4 +1,4 @@
-[![logo](https://raw.githubusercontent.com/dperson/samba/master/logo.jpg)](https://www.samba.org)
+[![logo](https://raw.githubusercontent.com/adrianmusante/docker-samba/main/logo.jpg)](https://www.samba.org)
 
 # Samba
 
@@ -16,17 +16,17 @@ By default there are no shares configured, additional ones can be added.
 
 ## Hosting a Samba instance
 
-    sudo docker run -it -p 139:139 -p 445:445 -d dperson/samba -p
+    sudo docker run -it -p 139:139 -p 445:445 -d adrianmusante/samba -p
 
 OR set local storage:
 
     sudo docker run -it --name samba -p 139:139 -p 445:445 \
                 -v /path/to/directory:/mount \
-                -d dperson/samba -p
+                -d adrianmusante/samba -p
 
 ## Configuration
 
-    sudo docker run -it --rm dperson/samba -h
+    sudo docker run -it --rm adrianmusante/samba -h
     Usage: samba.sh [-opt] [command]
     Options (fields in '[]' are optional, '<>' are required):
         -h          This help
@@ -109,11 +109,11 @@ Any of the commands can be run at creation with `docker run` or later with
 
 ### Setting the Timezone
 
-    sudo docker run -it -e TZ=EST5EDT -p 139:139 -p 445:445 -d dperson/samba -p
+    sudo docker run -it -e TZ=EST5EDT -p 139:139 -p 445:445 -d adrianmusante/samba -p
 
 ### Start an instance creating users and shares:
 
-    sudo docker run -it -p 139:139 -p 445:445 -d dperson/samba -p \
+    sudo docker run -it -p 139:139 -p 445:445 -d adrianmusante/samba -p \
                 -u "example1;badpass" \
                 -u "example2;badpass" \
                 -s "public;/share" \
@@ -134,7 +134,7 @@ Add the `-p` option to the end of your options to the container, or set the
 
     sudo docker run -it --name samba -p 139:139 -p 445:445 \
                 -v /path/to/directory:/mount \
-                -d dperson/samba -p
+                -d adrianmusante/samba -p
 
 If changing the permissions of your files is not possible in your setup you
 can instead set the environment variables `USERID` and `GROUPID` to the
@@ -148,7 +148,7 @@ docker_compose.yml files, IE:
 
     sudo docker run -it --name samba -m 512m -p 139:139 -p 445:445 \
                 -v /path/to/directory:/mount \
-                -d dperson/samba -p
+                -d adrianmusante/samba -p
 
 * Attempting to connect with the `smbclient` commandline tool. By default samba
 still tries to use SMB1, which is depriciated and has security issues. This
@@ -159,4 +159,4 @@ any other options you would specify.
 ## Issues
 
 If you have any problems with or questions about this image, please contact me
-through a [GitHub issue](https://github.com/dperson/samba/issues).
+through a [GitHub issue](https://github.com/adrianmusante/docker-samba/issues).
