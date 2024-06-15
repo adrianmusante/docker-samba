@@ -1,8 +1,8 @@
 #!/bin/bash
 #===============================================================================
-#          FILE: samba.sh
+#          FILE: samba
 #
-#         USAGE: ./samba.sh
+#         USAGE: samba
 #
 #   DESCRIPTION: Configures and manages a Samba server for file sharing.
 #
@@ -240,8 +240,8 @@ The 'command' (if provided and valid) will be run instead of samba
     exit $RC
 }
 
-[[ "${USERID:-""}" =~ ^[0-9]+$ ]] && usermod -u $USERID -o smbuser
-[[ "${GROUPID:-""}" =~ ^[0-9]+$ ]] && groupmod -g $GROUPID -o smb
+[[ "${PUID:-""}" =~ ^[0-9]+$ ]] && usermod -u $PUID -o smbuser
+[[ "${PGID:-""}" =~ ^[0-9]+$ ]] && groupmod -g $PGID -o smb
 
 while getopts ":hc:G:g:i:nprs:Su:Ww:I:" opt; do
     case "$opt" in
@@ -250,8 +250,8 @@ while getopts ":hc:G:g:i:nprs:Su:Ww:I:" opt; do
         G) eval generic $(sed 's/^/"/; s/$/"/; s/;/" "/g' <<< $OPTARG) ;;
         g) global "$OPTARG" ;;
         i) import "$OPTARG" ;;
-        n) NMBD="true" ;;
-        p) PERMISSIONS="true" ;;
+        n) SAMBA_NMBD="true" ;;
+        p) SAMBA_PERMISSIONS="true" ;;
         r) recycle ;;
         s) eval share $(sed 's/^/"/; s/$/"/; s/;/" "/g' <<< $OPTARG) ;;
         S) smb ;;
@@ -259,41 +259,41 @@ while getopts ":hc:G:g:i:nprs:Su:Ww:I:" opt; do
         w) workgroup "$OPTARG" ;;
         W) widelinks ;;
         I) include "$OPTARG" ;;
-        "?") echo "Unknown option: -$OPTARG"; usage 1 ;;
-        ":") echo "No argument value for option: -$OPTARG"; usage 2 ;;
+        "?") error "Unknown option: -$OPTARG"; usage 1 ;;
+        ":") error "No argument value for option: -$OPTARG"; usage 2 ;;
     esac
 done
 shift $(( OPTIND - 1 ))
 
-[[ "${CHARMAP:-""}" ]] && charmap "$CHARMAP"
+[[ "${SAMBA_CHARMAP:-""}" ]] && charmap "$SAMBA_CHARMAP"
 while read i; do
     eval generic $(sed 's/^/"/; s/$/"/; s/;/" "/g' <<< $i)
-done < <(env | awk '/^GENERIC[0-9=_]/ {sub (/^[^=]*=/, "", $0); print}')
+done < <(env | awk '/^SAMBA_GENERIC[0-9=_]/ {sub (/^[^=]*=/, "", $0); print}')
 while read i; do
     global "$i"
-done < <(env | awk '/^GLOBAL[0-9=_]/ {sub (/^[^=]*=/, "", $0); print}')
-[[ "${IMPORT:-""}" ]] && import "$IMPORT"
-[[ "${RECYCLE:-""}" ]] && recycle
+done < <(env | awk '/^SAMBA_GLOBAL[0-9=_]/ {sub (/^[^=]*=/, "", $0); print}')
+[[ "${SAMBA_IMPORT:-""}" ]] && import "$SAMBA_IMPORT"
+[[ "${SAMBA_RECYCLE:-""}" ]] && recycle
 while read i; do
     eval share $(sed 's/^/"/; s/$/"/; s/;/" "/g' <<< $i)
-done < <(env | awk '/^SHARE[0-9=_]/ {sub (/^[^=]*=/, "", $0); print}')
-[[ "${SMB:-""}" ]] && smb
+done < <(env | awk '/^SAMBA_SHARE[0-9=_]/ {sub (/^[^=]*=/, "", $0); print}')
+[[ "${SAMBA_SMB:-""}" ]] && smb
 while read i; do
     eval user $(sed 's/^/"/; s/$/"/; s/;/" "/g' <<< $i)
-done < <(env | awk '/^USER[0-9=_]/ {sub (/^[^=]*=/, "", $0); print}')
-[[ "${WORKGROUP:-""}" ]] && workgroup "$WORKGROUP"
-[[ "${WIDELINKS:-""}" ]] && widelinks
-[[ "${INCLUDE:-""}" ]] && include "$INCLUDE"
-[[ "${PERMISSIONS:-""}" ]] && perms &
+done < <(env | awk '/^SAMBA_USER[0-9=_]/ {sub (/^[^=]*=/, "", $0); print}')
+[[ "${SAMBA_WORKGROUP:-""}" ]] && workgroup "$SAMBA_WORKGROUP"
+[[ "${SAMBA_WIDELINKS:-""}" ]] && widelinks
+[[ "${SAMBA_INCLUDE:-""}" ]] && include "$SAMBA_INCLUDE"
+[[ "${SAMBA_PERMISSIONS:-""}" ]] && perms &
 
 if [[ $# -ge 1 && -x $(which $1 2>&-) ]]; then
     exec "$@"
 elif [[ $# -ge 1 ]]; then
-    echo "ERROR: command not found: $1"
+    error "command not found: $1"
     exit 13
 elif ps -ef | egrep -v grep | grep -q smbd; then
-    echo "Service already running, please restart container to apply changes"
+    warn "Service already running, please restart container to apply changes"
 else
-    [[ ${NMBD:-""} ]] && ionice -c 3 nmbd -D
+    [[ ${SAMBA_NMBD:-""} ]] && ionice -c 3 nmbd -D
     exec ionice -c 3 smbd -d "${SAMBA_LOG_LEVEL}" --debug-stdout -F --no-process-group </dev/null
 fi

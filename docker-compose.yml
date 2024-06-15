@@ -4,17 +4,16 @@ services:
     image: adrianmusante/samba:0.0.0
     container_name: samba
     restart: unless-stopped
-    command: '-u "${SAMBA_USERNAME:-admin};${SAMBA_PASSWORD:-admin123}" -s "public;/data/pubic;yes;no" -s "downloads;/data/downloads;yes;no"'
+    command: '-p -u "${SAMBA_USERNAME:-admin};${SAMBA_PASSWORD:-admin123}" -s "public;/data/pubic;yes;no" -s "downloads;/data/downloads;yes;no"'
     build:
       context: samba
       args:
         BUILD_TAG: 0.0.0
     environment:
       SAMBA_DEBUG: ${SAMBA_DEBUG:-true}
+      PUID: ${DOCKER_HOST_UID:-1001}
+      PGID: ${DOCKER_HOST_GID:-1001}
       TZ: ${DOCKER_HOST_TZ:-}
-      USERID: ${DOCKER_HOST_UID:-1001}
-      GROUPID: ${DOCKER_HOST_GID:-1001}
-      PERMISSIONS: 'true'
     ports:
       - "137:137/udp"
       - "138:138/udp"
