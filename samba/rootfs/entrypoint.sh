@@ -7,4 +7,4 @@ debug "USER: $(id)"
 debug "HOSTNAME: $(hostname)"
 
 is_debug_enabled && set -x
-exec "$SAMBA_HOME/scripts/samba.sh" "$@"
+exec samba "$@"
