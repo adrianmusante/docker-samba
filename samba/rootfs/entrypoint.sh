@@ -2,7 +2,7 @@
 set -eo pipefail
 eval "$(samba-env)"
 
-info "Running Samba v${BUILD_TAG} (init)"
+info "Running Samba with build version: ${BUILD_TAG}"
 debug "USER: $(id)"
 debug "HOSTNAME: $(hostname)"
 
