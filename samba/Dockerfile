@@ -13,12 +13,15 @@ RUN find . -type f -not -perm 755 | while read -r f; do  \
 
 FROM base as final
 
+ENV SAMBA_HOME=/opt/samba \
+    SAMBA_CONF_FILE=/etc/samba/smb.conf
+
 # Install samba
 RUN apk --no-cache --no-progress upgrade && \
     apk --no-cache --no-progress add bash samba shadow tzdata && \
     addgroup -S smb && \
     adduser -S -D -H -h /tmp -s /sbin/nologin -G smb -g 'Samba User' smbuser &&\
-    file="/etc/samba/smb.conf" && \
+    file="$SAMBA_CONF_FILE" && \
     sed -i 's|^;* *\(log file = \).*|   \1/dev/stdout|' $file && \
     sed -i 's|^;* *\(load printers = \).*|   \1no|' $file && \
     sed -i 's|^;* *\(printcap name = \).*|   \1/dev/null|' $file && \

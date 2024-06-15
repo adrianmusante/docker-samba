@@ -4,25 +4,27 @@
 #
 #         USAGE: ./samba.sh
 #
-#   DESCRIPTION: Entrypoint for samba docker container
+#   DESCRIPTION: Configures and manages a Samba server for file sharing.
 #
 #       OPTIONS: ---
 #  REQUIREMENTS: ---
 #          BUGS: ---
 #         NOTES: ---
-#        AUTHOR: David Personette (dperson@gmail.com),
+#        AUTHOR: David Personette <https://github.com/dperson>
+#    MAINTAINER: Adrian Musante <https://github.com/adrianmusante>
 #  ORGANIZATION:
 #       CREATED: 09/28/2014 12:11
-#      REVISION: 1.0
+#      REVISION: 2.0
 #===============================================================================
 
 set -o nounset                              # Treat unset variables as an error
+eval "$(samba-env)"
 
 ### charmap: setup character mapping for file/directory names
 # Arguments:
 #   chars) from:to character mappings separated by ','
 # Return: configured character mapings
-charmap() { local chars="$1" file=/etc/samba/smb.conf
+charmap() { local chars="$1" file="$SAMBA_CONF_FILE"
     grep -q catia $file || sed -i '/TCP_NODELAY/a \
 \
     vfs objects = catia\
@@ -39,7 +41,7 @@ charmap() { local chars="$1" file=/etc/samba/smb.conf
 #   option) raw option
 # Return: line added to smb.conf (replaces existing line with same key)
 generic() { local section="$1" key="$(sed 's| *=.*||' <<< $2)" \
-            value="$(sed 's|[^=]*= *||' <<< $2)" file=/etc/samba/smb.conf
+            value="$(sed 's|[^=]*= *||' <<< $2)" file="$SAMBA_CONF_FILE"
     if sed -n '/^\['"$section"'\]/,/^\[/p' $file | grep -qE '^;*\s*'"$key"; then
         sed -i '/^\['"$1"'\]/,/^\[/s|^;*\s*\('"$key"' = \).*|   \1'"$value"'|' \
                     "$file"
@@ -53,7 +55,7 @@ generic() { local section="$1" key="$(sed 's| *=.*||' <<< $2)" \
 #   option) raw option
 # Return: line added to smb.conf (replaces existing line with same key)
 global() { local key="$(sed 's| *=.*||' <<< $1)" \
-            value="$(sed 's|[^=]*= *||' <<< $1)" file=/etc/samba/smb.conf
+            value="$(sed 's|[^=]*= *||' <<< $1)" file="$SAMBA_CONF_FILE"
     if sed -n '/^\[global\]/,/^\[/p' $file | grep -qE '^;*\s*'"$key"; then
         sed -i '/^\[global\]/,/^\[/s|^;*\s*\('"$key"' = \).*|   \1'"$value"'|' \
                     "$file"
@@ -65,7 +67,7 @@ global() { local key="$(sed 's| *=.*||' <<< $1)" \
 ### include: add a samba config file include
 # Arguments:
 #   file) file to import
-include() { local includefile="$1" file=/etc/samba/smb.conf
+include() { local includefile="$1" file="$SAMBA_CONF_FILE"
     sed -i "\\|include = $includefile|d" "$file"
     echo "include = $includefile" >> "$file"
 }
@@ -85,7 +87,7 @@ import() { local file="$1" name id
 # Arguments:
 #   none)
 # Return: result
-perms() { local i file=/etc/samba/smb.conf
+perms() { local i file="$SAMBA_CONF_FILE"
     for i in $(awk -F ' = ' '/   path = / {print $2}' $file); do
         chown -Rh smbuser. $i
         find $i -type d ! -perm 775 -exec chmod 775 {} \;
@@ -98,7 +100,7 @@ export -f perms
 # Arguments:
 #   none)
 # Return: result
-recycle() { local file=/etc/samba/smb.conf
+recycle() { local file="$SAMBA_CONF_FILE"
     sed -i '/recycle:/d; /vfs objects/s/ recycle / /' $file
 }
 
@@ -116,7 +118,7 @@ recycle() { local file=/etc/samba/smb.conf
 # Return: result
 share() { local share="$1" path="$2" browsable="${3:-yes}" ro="${4:-yes}" \
                 guest="${5:-yes}" users="${6:-""}" admins="${7:-""}" \
-                writelist="${8:-""}" comment="${9:-""}" file=/etc/samba/smb.conf
+                writelist="${8:-""}" comment="${9:-""}" file="$SAMBA_CONF_FILE"
     sed -i "/\\[$share\\]/,/^\$/d" $file
     echo "[$share]" >>$file
     echo "   path = $path" >>$file
@@ -145,7 +147,7 @@ share() { local share="$1" path="$2" browsable="${3:-yes}" ro="${4:-yes}" \
 # Arguments:
 #   none)
 # Return: result
-smb() { local file=/etc/samba/smb.conf
+smb() { local file="$SAMBA_CONF_FILE"
     sed -i 's/\([^#]*min protocol *=\).*/\1 LANMAN1/' $file
 }
 
@@ -170,7 +172,7 @@ user() { local name="$1" passwd="$2" id="${3:-""}" group="${4:-""}" \
 # Arguments:
 #   workgroup) the name to set
 # Return: configure the correct workgroup
-workgroup() { local workgroup="$1" file=/etc/samba/smb.conf
+workgroup() { local workgroup="$1" file="$SAMBA_CONF_FILE"
     sed -i 's|^\( *workgroup = \).*|\1'"$workgroup"'|' $file
 }
 
@@ -178,7 +180,7 @@ workgroup() { local workgroup="$1" file=/etc/samba/smb.conf
 # Arguments:
 #   none)
 # Return: result
-widelinks() { local file=/etc/samba/smb.conf \
+widelinks() { local file="$SAMBA_CONF_FILE" \
             replace='\1\n   wide links = yes\n   unix extensions = no'
     sed -i 's/\(follow symlinks = yes\)/'"$replace"'/' $file
 }
@@ -293,5 +295,5 @@ elif ps -ef | egrep -v grep | grep -q smbd; then
     echo "Service already running, please restart container to apply changes"
 else
     [[ ${NMBD:-""} ]] && ionice -c 3 nmbd -D
-    exec ionice -c 3 smbd --debug-stdout -F --no-process-group </dev/null
+    exec ionice -c 3 smbd -d "${SAMBA_LOG_LEVEL}" --debug-stdout -F --no-process-group </dev/null
 fi
