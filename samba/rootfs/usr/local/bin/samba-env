@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ -z "${SAMBA_HOME:-}" ]; then
+  echo 'echo "Missing environment variable: SAMBA_HOME" 1>&2 && exit 1'
+else
+  cat <<SRC
+
+. "$SAMBA_HOME/scripts/samba-env.sh"
+SRC
+fi
+

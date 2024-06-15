@@ -1,12 +1,27 @@
-FROM alpine
-MAINTAINER David Personette <dperson@gmail.com>
+ARG BUILD_DIR=/build
+ARG BUILD_TAG
+FROM alpine as base
+
+FROM base as build
+ARG BUILD_DIR
+
+WORKDIR "$BUILD_DIR"
+
+COPY rootfs .
+RUN find . -type f -not -perm 755 | while read -r f; do  \
+      (head -n 1 "$f" 2>/dev/null | grep -q '^#!' && chmod -v 755 "$f") || true; done
+
+FROM base as final
+
+ENV SAMBA_HOME=/opt/samba \
+    SAMBA_CONF_FILE=/etc/samba/smb.conf
 
 # Install samba
 RUN apk --no-cache --no-progress upgrade && \
-    apk --no-cache --no-progress add bash samba shadow tini tzdata && \
+    apk --no-cache --no-progress add bash samba shadow tzdata && \
     addgroup -S smb && \
     adduser -S -D -H -h /tmp -s /sbin/nologin -G smb -g 'Samba User' smbuser &&\
-    file="/etc/samba/smb.conf" && \
+    file="$SAMBA_CONF_FILE" && \
     sed -i 's|^;* *\(log file = \).*|   \1/dev/stdout|' $file && \
     sed -i 's|^;* *\(load printers = \).*|   \1no|' $file && \
     sed -i 's|^;* *\(printcap name = \).*|   \1/dev/null|' $file && \
@@ -55,7 +70,8 @@ RUN apk --no-cache --no-progress upgrade && \
     echo '' >>$file && \
     rm -rf /tmp/*
 
-COPY samba.sh /usr/bin/
+ARG BUILD_DIR
+COPY --from=build "$BUILD_DIR" /
 
 EXPOSE 137/udp 138/udp 139 445
 
@@ -65,4 +81,7 @@ HEALTHCHECK --interval=60s --timeout=15s \
 VOLUME ["/etc", "/var/cache/samba", "/var/lib/samba", "/var/log/samba",\
             "/run/samba"]
 
-ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/samba.sh"]
+ARG BUILD_TAG
+ENV BUILD_TAG="$BUILD_TAG"
+
+ENTRYPOINT ["/entrypoint.sh"]
