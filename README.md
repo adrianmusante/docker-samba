@@ -141,7 +141,7 @@ Add the `-p` option to the end of your options to the container, or set the
                 -d adrianmusante/samba -p
 
 If changing the permissions of your files is not possible in your setup you
-can instead set the environment variables `SAMBA_UID` and `SAMBA_GID` to the
+can instead set the environment variables `PUID` and `PGID` to the
 values of the owner of your files.
 
 * High memory usage by samba. Multiple people have reported high memory usage
