@@ -3,7 +3,7 @@
 
 # Samba
 
-Samba docker container
+An updated version of the Samba Docker image, originally developed by [dperson/samba](https://github.com/dperson/samba).
 
 # What is Samba?
 
