@@ -1,8 +1,9 @@
 ARG BUILD_DIR=/build
 ARG BUILD_TAG
-FROM alpine as base
+FROM alpine AS base
 
-FROM base as build
+
+FROM base AS build
 ARG BUILD_DIR
 
 WORKDIR "$BUILD_DIR"
@@ -11,7 +12,8 @@ COPY rootfs .
 RUN find . -type f -not -perm 755 | while read -r f; do  \
       (head -n 1 "$f" 2>/dev/null | grep -q '^#!' && chmod -v 755 "$f") || true; done
 
-FROM base as final
+
+FROM base AS final
 
 ENV SAMBA_HOME=/opt/samba \
     SAMBA_CONF_FILE=/etc/samba/smb.conf
