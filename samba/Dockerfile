@@ -77,8 +77,8 @@ COPY --from=build "$BUILD_DIR" /
 
 EXPOSE 137/udp 138/udp 139 445
 
-HEALTHCHECK --interval=60s --timeout=15s \
-            CMD smbclient -L \\localhost -U % -m SMB3
+HEALTHCHECK --start-period=1m --start-interval=10s --interval=1m --timeout=15s --retries=3 \
+            CMD health-check
 
 VOLUME ["/etc", "/var/cache/samba", "/var/lib/samba", "/var/log/samba",\
             "/run/samba"]
