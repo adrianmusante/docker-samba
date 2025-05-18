@@ -1,0 +1,27 @@
+# This docker-compose is only for local (without NetBIOS)
+services:
+  samba:
+    image: adrianmusante/samba:0.0.0
+    container_name: samba
+    restart: unless-stopped
+    command: '-p -u "${SAMBA_USERNAME:-admin};${SAMBA_PASSWORD:-admin123}" -s "public;/data/pubic;yes;no" -s "downloads;/data/downloads;yes;no"'
+    build:
+      context: samba
+      args:
+        BUILD_TAG: 0.0.0
+    environment:
+      SAMBA_DEBUG: ${SAMBA_DEBUG:-true}
+      PUID: ${DOCKER_HOST_UID:-1001}
+      PGID: ${DOCKER_HOST_GID:-1001}
+      TZ: ${DOCKER_HOST_TZ:-}
+      SAMBA_GLOBAL: 'disable netbios = yes'
+      SAMBA_GLOBAL_1: 'netbios name = ${SAMBA_NETBIOS_NAME:-${DOCKER_HOST_NAME:-}}'
+    ports:
+      - "445:445/tcp"
+    volumes:
+      - ./_local/data/samba:/data
+
+networks:
+  default:
+    name: samba_network
+    driver: bridge

@@ -125,6 +125,17 @@ Any of the commands can be run at creation with `docker run` or later with
                 -s "example1 private share;/example1;no;no;no;example1" \
                 -s "example2 private share;/example2;no;no;no;example2"
 
+### Start an instance without NetBIOS:
+
+    docker run -it -e SAMBA_GLOBAL="disable netbios = yes" -e SAMBA_GLOBAL_1="netbios name = $(hostname)" \
+                -p 445:445 -d adrianmusante/samba -p \
+                -u "example1;badpass" \
+                -u "example2;badpass" \
+                -s "public;/share" \
+                -s "users;/srv;no;no;no;example1,example2" \
+                -s "example1 private share;/example1;no;no;no;example1" \
+                -s "example2 private share;/example2;no;no;no;example2"
+
 # User Feedback
 
 ## Troubleshooting
