@@ -1,6 +1,7 @@
+ARG SAMBA_VERSION=4.21.4-r4
 ARG BUILD_DIR=/build
 ARG BUILD_TAG
-FROM alpine AS base
+FROM alpine:3 AS base
 
 
 FROM base AS build
@@ -19,8 +20,9 @@ ENV SAMBA_HOME=/opt/samba \
     SAMBA_CONF_FILE=/etc/samba/smb.conf
 
 # Install samba
+ARG SAMBA_VERSION
 RUN apk --no-cache --no-progress upgrade && \
-    apk --no-cache --no-progress add bash samba shadow tzdata && \
+    apk --no-cache --no-progress add bash "samba=$SAMBA_VERSION" shadow tzdata && \
     addgroup -S smb && \
     adduser -S -D -H -h /tmp -s /sbin/nologin -G smb -g 'Samba User' smbuser &&\
     file="$SAMBA_CONF_FILE" && \
@@ -84,6 +86,7 @@ VOLUME ["/etc", "/var/cache/samba", "/var/lib/samba", "/var/log/samba",\
             "/run/samba"]
 
 ARG BUILD_TAG
-ENV BUILD_TAG="$BUILD_TAG"
+ENV SAMBA_VERSION="$SAMBA_VERSION" \
+    BUILD_TAG="$BUILD_TAG"
 
 ENTRYPOINT ["/entrypoint.sh"]
