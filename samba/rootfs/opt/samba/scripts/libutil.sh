@@ -11,8 +11,7 @@ if is_boolean_yes "${SAMBA_LOG_COLOR:-true}" ; then
   YELLOW='\033[38;5;3m'
 fi
 
-stderr_print() { printf "%b\\n" "${*}" >&2 ; }
-log() { stderr_print "${MAGENTA:-}$(date "+%T.%2N ")${RESET:-}${*}" ; }
+log() { printf "%b\\n" "${MAGENTA}$(date "+%T.%2N")${RESET} ${*}" >&2;}
 info() { log "${GREEN:-}INF0 ${RESET:-} ==> ${*}"; }
 warn() { log "${YELLOW:-}WARN ${RESET:-} ==> ${*}" ; }
 error() { log "${RED:-}ERROR${RESET:-} ==> ${*}" ; }
