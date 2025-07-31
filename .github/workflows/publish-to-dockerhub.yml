@@ -60,6 +60,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-          repository: ${{ secrets.DOCKER_HUB_USERNAME }}/sonarqube
+          repository: ${{ secrets.DOCKER_HUB_USERNAME }}/samba
           readme-filepath: ./README.md
           enable-url-completion: false
