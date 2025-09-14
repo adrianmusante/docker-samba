@@ -32,12 +32,18 @@ jobs:
       - name: Get latest version
         id: get-latest
         run: |
-          version="$(docker run --rm alpine:3 sh -c "apk --no-cache --no-progress update >/dev/null && apk upgrade >/dev/null && apk search -v -e samba | tr ' ' '\n' | grep 'samba-' | cut -d'-' -f2-")"
+          version="$(docker run --rm alpine sh -c "apk --no-cache --no-progress update >/dev/null && apk upgrade >/dev/null && apk search -v -e samba | tr ' ' '\n' | grep 'samba-' | cut -d'-' -f2-")"
           if [ -z "$version" ]; then
             echo "Failed to fetch latest version" >&2
             exit 1
           fi
+          alpine_version="$(docker run --rm alpine cat /etc/alpine-release)"
+          if [ -z "$alpine_version" ]; then
+              echo "Failed to fetch Alpine version" >&2
+              exit 1
+          fi
           echo "Latest version: $version"
+          echo "Alpine version: $alpine_version"
           echo "version=$version" >> $GITHUB_OUTPUT
       - name: Get current version
         id: get-current
@@ -79,6 +85,7 @@ jobs:
           version="${{ steps.get-latest.outputs.version }}"
           branch="${{ steps.pr.outputs.head_branch }}"
           git checkout -b "$branch"
+          sed -i "s|ARG ALPINE_VERSION=.*|ARG ALPINE_VERSION="${{ steps.get-latest.outputs.alpine_version }}"|" "$DOCKERFILE_PATH"
           sed -i "s|ARG $DOCKERFILE_VERSION_KEY=.*|ARG $DOCKERFILE_VERSION_KEY=$version|" "$DOCKERFILE_PATH"
           sed -i -E "s|-\s*\[\`[0-9]+\`,\s*\`[0-9.]+\`,\s*\`latest\` \(${DOCKERFILE_PATH}\)\]|- [\`$(echo "$version" | cut -d'.' -f1,1)\`, \`$(echo "$version" | cut -d'.' -f1,2)\`, \`latest\` (${DOCKERFILE_PATH})]|" README.md
           git commit -am "Update version to $version"
