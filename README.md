@@ -5,17 +5,27 @@
 
 An updated version of the Samba Docker image, originally developed by [dperson/samba](https://github.com/dperson/samba).
 
-# What is Samba?
+## What is Samba?
 
 Since 1992, Samba has provided secure, stable and fast file and print services
 for all clients using the SMB/CIFS protocol, such as all versions of DOS and
 Windows, OS/2, Linux and many others.
 
-# How to use this image
+## Docker registry
+
+The recommended way to get Samba Docker Image is to pull the prebuilt image from the [Docker Hub Registry](https://hub.docker.com/r/adrianmusante/samba).
+
+To use a specific version, you can pull a versioned tag. You can view the [list of available versions](https://hub.docker.com/r/adrianmusante/samba/tags/) in the Docker Hub Registry.
+
+- [`1`, `1.0`, `latest` (samba/Dockerfile)](https://github.com/adrianmusante/docker-samba/blob/main/samba/Dockerfile)
+
+
+## Configuration
+
+### How to use this image
 
 By default there are no shares configured, additional ones can be added.
 
-## Hosting a Samba instance
 
     docker run -it -p 139:139 -p 445:445 -d adrianmusante/samba -p
 
@@ -25,7 +35,10 @@ OR set local storage:
                 -v /path/to/directory:/mount \
                 -d adrianmusante/samba -p
 
-## Configuration
+### Command options
+
+When starting the container you can pass options to the `samba` command. 
+For see the available options run:
 
     $ docker run -it --rm adrianmusante/samba -h
     Usage: samba [-opt] [command]
@@ -76,6 +89,11 @@ OR set local storage:
     The 'command' (if provided and valid) will be run instead of samba
 
 ### Environment variables
+
+The container can also be configured with environment variables.
+When you start the Samba image, you can adjust the configuration of the instance by passing one or more environment 
+variables either on the docker-compose file or on the `docker run` command line.
+If you want to add a new environment variable:
 
 - `PUID`: Set the UID for the samba server's default user (smbuser)
 - `PGID`: Set the GID for the samba server's default user (smbuser)
@@ -136,9 +154,9 @@ Any of the commands can be run at creation with `docker run` or later with
                 -s "example1 private share;/example1;no;no;no;example1" \
                 -s "example2 private share;/example2;no;no;no;example2"
 
-# User Feedback
+## User Feedback
 
-## Troubleshooting
+### Troubleshooting
 
 * You get the error `Access is denied` (or similar) on the client and/or see
 `change_to_user_internal: chdir_current_service() failed!` in the container
@@ -165,13 +183,13 @@ docker_compose.yml files, IE:
                 -v /path/to/directory:/mount \
                 -d adrianmusante/samba -p
 
-* Attempting to connect with the `smbclient` commandline tool. By default samba
-still tries to use SMB1, which is depriciated and has security issues. This
-container defaults to SMB2, which for no decernable reason even though it's
-supported is disabled by default so run the command as `smbclient -m SMB3`, then
+* Attempting to connect with the `smbclient` command-line tool: By default, Samba
+tries to use SMB1, which is deprecated and has security issues. This
+container defaults to SMB2, but for no discernible reason, even though it's
+supported, it is disabled by default. Run the command as `smbclient -m SMB3` along with
 any other options you would specify.
 
-## Issues
+### Issues
 
 If you have any problems with or questions about this image, please contact me
 through a [GitHub issue](https://github.com/adrianmusante/docker-samba/issues).
