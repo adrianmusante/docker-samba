@@ -45,6 +45,7 @@ jobs:
           echo "Latest version: $version"
           echo "Alpine version: $alpine_version"
           echo "version=$version" >> $GITHUB_OUTPUT
+          echo "alpine_version=$alpine_version" >> $GITHUB_OUTPUT
       - name: Get current version
         id: get-current
         run: |
