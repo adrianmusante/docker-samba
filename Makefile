@@ -26,4 +26,4 @@ logs:
 	docker compose logs -f
 
 samba-repository-version: # https://pkgs.alpinelinux.org/packages?name=samba&branch=v3.22&repo=main&arch=
-	docker run --rm alpine:3 sh -c "apk --no-cache --no-progress update >/dev/null && apk upgrade >/dev/null && apk search -v -e samba | tr ' ' '\n' | grep 'samba-' | cut -d'-' -f2-"
+	docker run --rm alpine sh -c "apk --no-cache --no-progress update >/dev/null && apk upgrade >/dev/null && apk search -v -e samba | tr ' ' '\n' | grep 'samba-' | cut -d'-' -f2-"
