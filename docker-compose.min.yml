@@ -17,7 +17,7 @@ services:
       SAMBA_GLOBAL: 'disable netbios = yes'
       SAMBA_GLOBAL_1: 'netbios name = ${SAMBA_NETBIOS_NAME:-${DOCKER_HOST_NAME:-}}'
     ports:
-      - "445:445/tcp"
+      - "${SAMBA_PORT:-445}:445/tcp"
     volumes:
       - ./_local/data/samba:/data
 
