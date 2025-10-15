@@ -13,6 +13,7 @@ env:
   DEPENDENCY_NAME: Samba
   DOCKERFILE_PATH: samba/Dockerfile
   DOCKERFILE_VERSION_KEY: SAMBA_VERSION
+  DOCKERFILE_OS_VERSION_KEY: ALPINE_VERSION
 
 jobs:
   update-version:
@@ -29,6 +30,16 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      - name: Get current version
+        id: get-current
+        run: |
+          get_version() { grep "ARG $1=" "$DOCKERFILE_PATH" | cut -d '=' -f2 | tr -d '[:space:]'; }
+          version="$(get_version "$DOCKERFILE_VERSION_KEY")"
+          os_version="$(get_version "$DOCKERFILE_OS_VERSION_KEY")"
+          
+          echo "Current version: $version (os: $os_version)"
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "os_version=$os_version" >> $GITHUB_OUTPUT
       - name: Get latest version
         id: get-latest
         run: |
@@ -37,28 +48,25 @@ jobs:
             echo "Failed to fetch latest version" >&2
             exit 1
           fi
-          alpine_version="$(docker run --rm alpine cat /etc/alpine-release)"
-          if [ -z "$alpine_version" ]; then
+          
+          # Retrieve OS version
+          os_version="$(docker run --rm alpine cat /etc/alpine-release)"
+          if [ -z "$os_version" ]; then
               echo "Failed to fetch Alpine version" >&2
               exit 1
           fi
-          echo "Latest version: $version"
-          echo "Alpine version: $alpine_version"
+          
+          echo "Latest version: $version (os: $os_version)"
           echo "version=$version" >> $GITHUB_OUTPUT
-          echo "alpine_version=$alpine_version" >> $GITHUB_OUTPUT
-      - name: Get current version
-        id: get-current
-        run: |
-          version="$(grep "^ARG $DOCKERFILE_VERSION_KEY=" "$DOCKERFILE_PATH" | cut -d '=' -f2)"
-          echo "Current version: $version"
-          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "os_version=$os_version" >> $GITHUB_OUTPUT
       - name: Check if update is needed
         id: check
         run: |
-          if [ "${{ steps.get-latest.outputs.version }}" = "${{ steps.get-current.outputs.version }}" ]; then
-            echo "up_to_date=true" >> $GITHUB_OUTPUT
-          else
-            echo "up_to_date=false" >> $GITHUB_OUTPUT
+          if [ "${{ steps.get-latest.outputs.version }}" = "${{ steps.get-current.outputs.version }}" ] \
+            && [ "${{ steps.get-latest.outputs.os_version }}" = "${{ steps.get-current.outputs.os_version }}" ]; then
+              echo "up_to_date=true" >> $GITHUB_OUTPUT
+            else
+              echo "up_to_date=false" >> $GITHUB_OUTPUT
           fi
       - name: Pull request metadata
         if: steps.check.outputs.up_to_date == 'false'
@@ -67,7 +75,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           version="${{ steps.get-latest.outputs.version }}"
-          title="Update $DEPENDENCY_NAME to v$version"
+          title="Update $DEPENDENCY_NAME to v$version (os: ${{ steps.get-latest.outputs.os_version }})"
           prs=$(gh pr list --search "$title" --json title | jq length)
           if [ "$prs" -gt 0 ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
@@ -86,8 +94,9 @@ jobs:
           version="${{ steps.get-latest.outputs.version }}"
           branch="${{ steps.pr.outputs.head_branch }}"
           git checkout -b "$branch"
-          sed -i "s|ARG ALPINE_VERSION=.*|ARG ALPINE_VERSION="${{ steps.get-latest.outputs.alpine_version }}"|" "$DOCKERFILE_PATH"
-          sed -i "s|ARG $DOCKERFILE_VERSION_KEY=.*|ARG $DOCKERFILE_VERSION_KEY=$version|" "$DOCKERFILE_PATH"
+          update_dockerfile_version() { sed -i "s|ARG $1=.*|ARG $1=$2|" "$DOCKERFILE_PATH"; }
+          update_dockerfile_version "$DOCKERFILE_VERSION_KEY" "$version"
+          update_dockerfile_version "$DOCKERFILE_OS_VERSION_KEY" "${{ steps.get-latest.outputs.os_version }}"
           sed -i -E "s|-\s*\[\`[0-9]+\`,\s*\`[0-9.]+\`,\s*\`latest\` \(${DOCKERFILE_PATH}\)\]|- [\`$(echo "$version" | cut -d'.' -f1,1)\`, \`$(echo "$version" | cut -d'.' -f1,2)\`, \`latest\` (${DOCKERFILE_PATH})]|" README.md
           git commit -am "Update version to $version"
           git push origin "$branch"
