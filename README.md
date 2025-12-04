@@ -17,7 +17,7 @@ The recommended way to get Samba Docker Image is to pull the prebuilt image from
 
 To use a specific version, you can pull a versioned tag. You can view the [list of available versions](https://hub.docker.com/r/adrianmusante/samba/tags/) in the Docker Hub Registry.
 
-- [`4`, `4.21`, `latest` (samba/Dockerfile)](https://github.com/adrianmusante/docker-samba/blob/main/samba/Dockerfile)
+- [`4`, `4.22`, `latest` (samba/Dockerfile)](https://github.com/adrianmusante/docker-samba/blob/main/samba/Dockerfile)
 
 
 ## Configuration
