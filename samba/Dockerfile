@@ -57,7 +57,6 @@ RUN apk --no-cache --no-progress upgrade && \
     echo '   recycle:keeptree = yes' >>$file && \
     echo '   recycle:maxsize = 0' >>$file && \
     echo '   recycle:repository = .recycle' >>$file && \
-    echo '   recycle:touch = yes' >>$file && \
     echo '   recycle:versions = yes' >>$file && \
     echo '' >>$file && \
     echo '   # Security' >>$file && \
