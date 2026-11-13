@@ -124,6 +124,12 @@ container configured to use the hosts network stack.
 **NOTE3**: optionally supports additional variables starting with the same name,
 IE `SAMBA_SHARE` also will work for `SAMBA_SHARE2`, `SAMBA_SHARE3`... `SAMBA_SHAREx`, etc.
 
+**NOTE4**: Boolean environment variables (`SAMBA_DEBUG`, `SAMBA_LOG_COLOR`,
+`SAMBA_NMBD`, `SAMBA_PERMISSIONS`, `SAMBA_RECYCLE`, `SAMBA_SMB`,
+`SAMBA_WIDELINKS`) accept only `1`, `true`, `yes`, `0`, `false` or `no`
+(case-insensitive). Unset or empty keeps the default (off for the flag
+variables). Any other value fails at startup.
+
 ## Examples
 
 Any of the commands can be run at creation with `docker run` or later with
