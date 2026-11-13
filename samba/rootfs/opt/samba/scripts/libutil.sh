@@ -1,6 +1,9 @@
 #!/bin/bash
 
 is_boolean_yes() { grep -i -qE '^(1|true|yes)$' <(echo -n "${1-}") ; }
+is_boolean_no() { grep -i -qE '^(0|false|no)$' <(echo -n "${1-}") ; }
+# is_flag_set: true for any non-empty value except 0, false or no
+is_flag_set() { [[ -n "${1-}" ]] && ! is_boolean_no "${1-}" ; }
 is_debug_enabled() { is_boolean_yes "${SAMBA_DEBUG:-false}" ; }
 
 if is_boolean_yes "${SAMBA_LOG_COLOR:-true}" ; then

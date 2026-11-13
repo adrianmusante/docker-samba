@@ -124,6 +124,10 @@ container configured to use the hosts network stack.
 **NOTE3**: optionally supports additional variables starting with the same name,
 IE `SAMBA_SHARE` also will work for `SAMBA_SHARE2`, `SAMBA_SHARE3`... `SAMBA_SHAREx`, etc.
 
+**NOTE4**: `SAMBA_NMBD`, `SAMBA_PERMISSIONS`, `SAMBA_RECYCLE`, `SAMBA_SMB` and
+`SAMBA_WIDELINKS` are switched on by any value except `false`, `no` or `0`
+(case-insensitive); leave them unset or set one of those to keep the option off.
+
 ## Examples
 
 Any of the commands can be run at creation with `docker run` or later with
