@@ -273,18 +273,18 @@ while read i; do
     global "$i"
 done < <(env | awk '/^SAMBA_GLOBAL[0-9=_]/ {sub (/^[^=]*=/, "", $0); print}')
 [[ "${SAMBA_IMPORT:-""}" ]] && import "$SAMBA_IMPORT"
-is_flag_set "${SAMBA_RECYCLE:-}" && recycle
+is_boolean_yes "${SAMBA_RECYCLE:-}" && recycle
 while read i; do
     eval share $(sed 's/^/"/; s/$/"/; s/;/" "/g' <<< $i)
 done < <(env | awk '/^SAMBA_SHARE[0-9=_]/ {sub (/^[^=]*=/, "", $0); print}')
-is_flag_set "${SAMBA_SMB:-}" && smb
+is_boolean_yes "${SAMBA_SMB:-}" && smb
 while read i; do
     eval user $(sed 's/^/"/; s/$/"/; s/;/" "/g' <<< $i)
 done < <(env | awk '/^SAMBA_USER[0-9=_]/ {sub (/^[^=]*=/, "", $0); print}')
 [[ "${SAMBA_WORKGROUP:-""}" ]] && workgroup "$SAMBA_WORKGROUP"
-is_flag_set "${SAMBA_WIDELINKS:-}" && widelinks
+is_boolean_yes "${SAMBA_WIDELINKS:-}" && widelinks
 [[ "${SAMBA_INCLUDE:-""}" ]] && include "$SAMBA_INCLUDE"
-is_flag_set "${SAMBA_PERMISSIONS:-}" && perms &
+is_boolean_yes "${SAMBA_PERMISSIONS:-}" && perms &
 
 if [[ $# -ge 1 && -x $(which $1 2>&-) ]]; then
     exec "$@"
@@ -294,6 +294,6 @@ elif [[ $# -ge 1 ]]; then
 elif ps -ef | egrep -v grep | grep -q smbd; then
     warn "Service already running, please restart container to apply changes"
 else
-    is_flag_set "${SAMBA_NMBD:-}" && ionice -c 3 nmbd -D
+    is_boolean_yes "${SAMBA_NMBD:-}" && ionice -c 3 nmbd -D
     exec ionice -c 3 smbd -d "${SAMBA_LOG_LEVEL}" --debug-stdout -F --no-process-group </dev/null
 fi

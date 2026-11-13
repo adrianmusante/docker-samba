@@ -2,8 +2,16 @@
 
 is_boolean_yes() { grep -i -qE '^(1|true|yes)$' <(echo -n "${1-}") ; }
 is_boolean_no() { grep -i -qE '^(0|false|no)$' <(echo -n "${1-}") ; }
-# is_flag_set: true for any non-empty value except 0, false or no
-is_flag_set() { [[ -n "${1-}" ]] && ! is_boolean_no "${1-}" ; }
+is_boolean() { is_boolean_yes "${1-}" || is_boolean_no "${1-}" ; }
+
+# Fail if value is set to something other than a recognized boolean.
+# Empty or unset is allowed (caller treats it as the default / off).
+require_boolean() {
+  local name="$1" value="${2-}"
+  [[ -z "$value" ]] && return 0
+  is_boolean "$value" || do_error "Invalid boolean for ${name}: '${value}' (expected 1|true|yes|0|false|no)"
+}
+
 is_debug_enabled() { is_boolean_yes "${SAMBA_DEBUG:-false}" ; }
 
 if is_boolean_yes "${SAMBA_LOG_COLOR:-true}" ; then
